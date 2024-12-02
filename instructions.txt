@@ -1,0 +1,132 @@
+Instructions for running an eth validator on a Linux AMD droplet
+
+Step1. Make sure you have enough memory! Probably no less than 16gb for ETH mainnet, and 8 for some smaller networks.
+
+Create Directory for prysm
+mkdir prysm && cd prysm within a dedicated subdirectory (eg: '/home/alexanderjsingleton/shinebox').
+
+Download prysm and executables by running the following curl command curl https://raw.githubusercontent.com/prysmaticlabs/prysm/master/prysm.sh --output prysm.sh && chmod +x prysm.sh
+
+Create App on Alchemy Compatible with the Chain
+
+Configure Beaconchain Parameters with Alchemy [OR INFURA]
+A minimum flag example is as follows:
+./prysm.sh beacon-chain --execution-endpoint=https://eth-mainnet.g.alchemy.com/v2/e0rlI32r984FaKv5KhWoD-yWSfhou7sR
+
+Note: Prysm does not bundle a genesis state for non-mainnet networks so need to download it first, e.g. wget https://github.com/eth-clients/holesky/raw/main/metadata/genesis.ssz
+Solution: Use --genesis-state or --genesis-beacon-api-url flags to specify the genesis state for the network
+
+For additional flags, see: https://docs.prylabs.network/docs/prysm-usage/parameters [--minimal-config is a personal reccomendation for lower memory specs and temporary use]
+
+In my case for holesky, I ran:
+./prysm.sh beacon-chain \
+    --execution-endpoint=https://eth-holesky.g.alchemy.com/v2/e0rlI32r984FaKv5KhWoD-yWSfhou7sR \
+    --holesky \
+    --suggested-fee-recipient=0xa341b0F69359482862Ed4422c6057cd59560D9E4 \
+    --accept-terms-of-use \
+    --genesis-state=genesis.ssz \
+    --datadir=/root/.eth2 \
+    --chain-id=17000 \
+    --verbosity=info
+
+    
+
+
+While this does it's thing, open a new terminal and proceed with the subsequent steps:
+
+Download Ethereum 2.0 CLI and Generate Deposit Keys
+
+Download link for linux AMD:
+curl -LO https://github.com/ethereum/staking-deposit-cli/releases/download/v2.8.0/staking_deposit-cli-948d3fc-linux-amd64.tar.gz
+
+
+[Verify the File (Optional but Recommended): Compare the checksum of the downloaded file to ensure it's correct:
+
+bash
+Copy code
+sha256sum staking_deposit-cli-948d3fc-linux-amd64.tar.gz
+The checksum should match:
+
+Copy code
+ef021252abd2591ef6d3558fb3258b35f478c20333f2dff4a17cc79b573c3879]
+
+Extract the File:
+
+bash
+Copy code
+tar -xzf staking_deposit-cli-948d3fc-linux-amd64.tar.gz
+
+Navigate to the Extracted Directory:
+
+
+cd staking_deposit-cli-948d3fc-linux-amd64
+Verify the Contents: List the contents to ensure the deposit binary is there:
+
+
+ls -l
+Run the Deposit CLI: Assuming the deposit binary is present, you can now run:
+
+
+./deposit new-mnemonic --num_validators 1 --chain holesky
+
+-Follow instructions-
+
+Import Validator Keys:
+/root/prysm/prysm.sh validator accounts import --keys-dir=/root/staking_deposit-cli-948d3fc-linux-amd64/validator_keys --holesky
+
+
+[You can view the imported accounts by running the following command:
+
+bash
+Copy code
+/root/prysm/prysm.sh validator accounts list]
+
+
+Submit your deposit
+
+Find your deposit json file by typing:
+ls -l /root/staking_deposit-cli-948d3fc-linux-amd64/validator_keys
+You should find a file like:
+-r--r----- 1 root root 706 Dec  2 11:47 deposit_data-1733140047.json
+
+Copy the file onto your local machine:
+scp root@<your-droplet-ip>:/root/staking_deposit-cli-948d3fc-linux-amd64/validator_keys/deposit_data-1733140047.json .
+
+
+Go to the appropriate staking launchpad and follow the deposit steps and upload the deposit_data-1733140047.json.
+
+Send your deposit and wait for your deposit file to be activated.
+
+Once your beacon node is running and synced, and your deposit file is activated, you can now start the validator client:
+
+Quickly create a text file with the password you set during wallet creation:
+
+nano /root/validator-wallet-password.txt
+
+Paste in your wallet password and control+O and enter to save.
+
+Control X to exit.
+
+Ensure the file is secure by restricting permissions:
+chmod 600 /root/validator-wallet-password.txt
+
+Start the validator client:
+./prysm.sh validator \
+    --wallet-dir=/root/.eth2validators/prysm-wallet-v2 \
+    --wallet-password-file=/path/to/password-file \
+    --datadir=/root/.eth2 \
+    --holesky
+
+
+Monitor Your Validator
+To check the status of your validator, run:
+
+bash
+Copy code
+/root/prysm/prysm.sh validator accounts list
+
+
+Useful Links:
+https://nimbus.guide/holesky.html
+
+
