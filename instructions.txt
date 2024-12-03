@@ -130,6 +130,23 @@ https://nimbus.guide/holesky.html
 
 
 ALternatively, can use lighthouse - however I think this requires us to use geth as the execution endpoint:
+
+Install Lighthouse:
+curl -LO https://github.com/sigp/lighthouse/releases/download/v4.2.0/lighthouse-v4.2.0-x86_64-unknown-linux-gnu.tar.gz
+
+
+Extract the Tarball Extract the downloaded file:
+
+tar -xvzf lighthouse-v4.2.0-x86_64-unknown-linux-gnu.tar.gz
+Move the Binary to Your PATH Move the Lighthouse binary to a directory in your PATH:
+
+sudo mv lighthouse /usr/local/bin/
+Verify Installation Confirm that Lighthouse is installed correctly:
+
+lighthouse --version
+
+
+
 0. Find the link to the genosis file and download with cURL:
 curl -o /root/holesky-genesis.json https://raw.githubusercontent.com/eth-clients/holesky/main/metadata/genesis.json
 
