@@ -42,8 +42,7 @@ curl -LO https://github.com/ethereum/staking-deposit-cli/releases/download/v2.8.
 
 [Verify the File (Optional but Recommended): Compare the checksum of the downloaded file to ensure it's correct:
 
-bash
-Copy code
+
 sha256sum staking_deposit-cli-948d3fc-linux-amd64.tar.gz
 The checksum should match:
 
@@ -52,8 +51,7 @@ ef021252abd2591ef6d3558fb3258b35f478c20333f2dff4a17cc79b573c3879]
 
 Extract the File:
 
-bash
-Copy code
+
 tar -xzf staking_deposit-cli-948d3fc-linux-amd64.tar.gz
 
 Navigate to the Extracted Directory:
@@ -77,8 +75,7 @@ Import Validator Keys:
 
 [You can view the imported accounts by running the following command:
 
-bash
-Copy code
+
 /root/prysm/prysm.sh validator accounts list]
 
 
@@ -177,6 +174,26 @@ lighthouse bn \
 
 And now you have your running node - continue from this step in the previous instruction set to complete your validator setup!
 
+Once the node has finished syncing, and deposit has been submitted, start your validator client:
+
+lighthouse vc \
+    --network holesky \
+    --datadir /root/.lighthouse \
+    --validators-dir /root/staking-deposit-cli/validator_keys \
+    --http \
+    --http-address 0.0.0.0 \
+    --metrics \
+    --metrics-address 0.0.0.0
+
+
+
+
+
+
+
+
+
+
 Add bootnodes to geth if needed to help find peers.
 Here are a list of good ones:
 Holesky:
@@ -196,6 +213,16 @@ var MainnetBootnodes = []string{
 
 Note:
 Geth for lighthouse likes to use json files as genesis. Prysm liked ssz
+
+
+
+
+
+
+
+
+
+
 
 
 For running with 100% uptime:
