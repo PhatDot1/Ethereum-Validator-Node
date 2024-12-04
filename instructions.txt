@@ -131,6 +131,20 @@ https://nimbus.guide/holesky.html
 
 ALternatively, can use lighthouse - however I think this requires us to use geth as the execution endpoint:
 
+sudo apt update
+sudo add-apt-repository -y ppa:ethereum/ethereum
+
+
+sudo apt install -y geth
+
+Can check if it installed correctly by checking the version:
+geth version
+
+Initialize geth
+
+geth init /root/holesky-genesis.json
+
+
 Install Lighthouse:
 curl -LO https://github.com/sigp/lighthouse/releases/download/v4.2.0/lighthouse-v4.2.0-x86_64-unknown-linux-gnu.tar.gz
 
