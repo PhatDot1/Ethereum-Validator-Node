@@ -1,4 +1,4 @@
-Instructions for running an eth validator on a Linux AMD droplet
+Instructions for running and setting up a non-archival (full) Ethereum Execution and Consensus node/validator on a Linux AMD droplet
 
 Step1. Make sure you have enough memory! Probably no less than 16gb for ETH mainnet, and 8 for some smaller networks.
 
@@ -148,6 +148,9 @@ geth init /root/holesky-genesis.json
 Install Lighthouse:
 curl -LO https://github.com/sigp/lighthouse/releases/download/v4.2.0/lighthouse-v4.2.0-x86_64-unknown-linux-gnu.tar.gz
 
+curl -LO https://github.com/sigp/lighthouse/releases/download/v6.0.0/lighthouse-v6.0.0-x86_64-unknown-linux-gnu.tar.gz
+
+
 
 Extract the Tarball Extract the downloaded file:
 
@@ -185,7 +188,16 @@ geth --datadir /root/.ethereum \
      --http --http.api "engine,eth,net,web3" \
      --authrpc.jwtsecret /secrets/jwt.hex \
      --syncmode full
-
+or
+geth --holesky \
+  --authrpc.jwtsecret /secrets/jwt.hex \
+  --http \
+  --http.api eth,net,engine \
+  --http.addr 0.0.0.0 \
+  --http.port 8545 \
+  --datadir /var/lib/geth \
+  --syncmode full \
+  --networkid 17000
 
 
 3.
@@ -201,6 +213,21 @@ lighthouse bn \
     --metrics \
     --metrics-address 0.0.0.0 \
     --checkpoint-sync-url https://holesky.beaconstate.ethstaker.cc/
+
+or:
+lighthouse bn \
+    --network holesky \
+    --execution-endpoint http://127.0.0.1:8551 \
+    --execution-jwt /secrets/jwt.hex \
+    --datadir /root/.lighthouse \
+    --http \
+    --http-address 0.0.0.0 \
+    --http-allow-origin '*' \
+    --metrics \
+    --metrics-address 0.0.0.0 \
+    --checkpoint-sync-url https://holesky.beaconstate.ethstaker.cc/ \
+    --genesis-backfill
+
 
 
 And now you have your running node - continue from this step in the previous instruction set to complete your validator setup!
@@ -304,7 +331,7 @@ After=network.target
 User=root
 Group=root
 Type=simple
-ExecStart=/root/.cargo/bin/lighthouse bn \
+ExecStart=/root/.cargo/bin/lighthouse bn \       [or wherever your file was downloaded to, e.g. /usr/local/bin/lighthouse]
     --network holesky \
     --execution-endpoint http://127.0.0.1:8551 \
     --execution-jwt /secrets/jwt.hex \
@@ -379,3 +406,29 @@ Gives highest block number geth has synced to.
 Now turn it into a validator.
 
 [Insert Instructions for this method]
+
+
+
+
+Monitoring continued:
+
+
+geth attach /var/lib/geth/geth.ipc
+
+
+> eth.syncing
+
+> eth.blockNumber
+
+> net.peerCount
+
+> eth.blockNumber
+
+
+journalctl -u geth.service -f
+journalctl -u lighthouse.service -f
+
+Disk usage:
+df -h
+
+
