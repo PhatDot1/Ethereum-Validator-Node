@@ -1,0 +1,106 @@
+NOTE: This will go over using cert bot to generate SSL certificates to allow any backend server to use HTTPS over HTTP
+
+Set up a reverse proxy for secure and limit access
+
+Install NGIX:
+
+sudo apt update
+sudo apt install nginx
+
+
+Create a config file:
+sudo nano /etc/nginx/sites-available/eth-holesky
+
+
+With example content:
+server {
+    listen 80;
+    server_name eth-holesky.rpc.encode.club;
+
+    location / {
+        proxy_pass http://127.0.0.1:8545;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Increase buffer and timeout settings for large RPC requests
+        client_max_body_size 10M;
+        proxy_read_timeout 90s;
+        proxy_send_timeout 90s;
+    }
+}
+
+
+Enable the configuation:
+sudo ln -s /etc/nginx/sites-available/eth-holesky /etc/nginx/sites-enabled/
+
+
+And you can check for syntax errors with:
+sudo nginx -t
+
+
+Restart NGIX:
+sudo systemctl restart nginx
+
+
+Configure SSL
+
+[Assuming u have already created a domain or subdomain, e.g. use godaddt and record the Name, e.g. eth-rpc
+Data whatever IP to be used from digital ocean [i.e. the public address of your droplet]]
+
+Install Certbot:
+sudo apt install certbot python3-certbot-nginx
+
+sudo mkdir -p /var/www/html/.well-known/acme-challenge
+sudo chown -R www-data:www-data /var/www/html
+
+
+
+Request an SSL certificate:
+sudo certbot --nginx -d eth-holesky.rpc.encode.club
+
+
+Test your hhtps:
+curl -I https://eth-holesky-rpc.encode.club
+
+
+Automate SSL Renewal!
+sudo systemctl list-timers | grep certbot
+
+
+
+Can test renewal process manually with:
+sudo certbot renew --dry-run
+
+
+Restart
+sudo systemctl restart nginx
+
+Can confirm HTTPS only by seeing your HTTP redirect to HTTPS:
+curl -I http://eth-holesky-rpc.encode.club
+
+
+
+Configure Geth to Serve RPC
+
+Modify geths startup command or configuration file to expose the RPC interface and bind it to localhost.
+
+e.g. geth --http --http.addr "127.0.0.1" --http.port "8545" --http.api "eth,web3,net" --allow-insecure-unlock
+
+Key Flags:
+--http: Enables the HTTP-RPC server.
+--http.addr "127.0.0.1": Binds the RPC to localhost (secure).
+--http.port "8545": The port that Nginx proxies to.
+--http.api "eth,web3,net": Restricts RPC API exposure to only required methods.
+
+
+Restart Geth and confirm it is running on 127.0.0.1:8545:
+curl -X POST --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' http://127.0.0.1:8545
+
+Test the public RPC endpoint:
+curl -X POST --data '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}' https://eth-holesky-rpc.encode.club
+
