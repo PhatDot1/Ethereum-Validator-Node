@@ -432,3 +432,106 @@ Disk usage:
 df -h
 
 
+
+
+
+
+
+
+
+MY HOLESKY TESTNET SETUP:
+
+
+EXECUTION LAYER: GETH
+
+sudo nano /etc/systemd/system/geth.service
+
+[Unit]
+Description=Geth Execution Layer for Ethereum
+After=network.target
+
+[Service]
+User=root
+Group=root
+Type=simple
+ExecStart=/usr/bin/geth --holesky \
+  --authrpc.jwtsecret /secrets/jwt.hex \
+  --http \
+  --http.api eth,net,engine,admin,web3 \
+  --http.addr 0.0.0.0 \
+  --http.port 8545 \
+  --http.corsdomain "*" \
+  --datadir /var/lib/geth \
+  --networkid 17000 \
+  --http.vhosts "eth-holesky-rpc.encode.club,localhost" \
+  --syncmode "snap" \
+  --allow-insecure-unlock
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
+
+CONCENSUS LAYER: LIGHTHOUSE
+
+sudo nano /etc/systemd/system/lighthouse.service
+
+[Unit]
+Description=Lighthouse Beacon Node for Holesky
+After=network.target
+
+[Service]
+User=root
+Group=root
+Type=simple
+ExecStart=/usr/local/bin/lighthouse bn \
+    --network holesky \
+    --execution-endpoint http://127.0.0.1:8551 \
+    --execution-jwt /secrets/jwt.hex \
+    --datadir /root/.lighthouse \
+    --http \
+    --http-address 0.0.0.0 \
+    --http-allow-origin '*' \
+    --metrics \
+    --metrics-address 0.0.0.0 \
+    --checkpoint-sync-url https://holesky.beaconstate.ethstaker.cc/
+Restart=always
+RestartSec=5
+Environment="PATH=/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/us>
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+VALIDATOR LAYER: LIGHTHOUSE
+
+sudo nano /etc/systemd/system/lighthouse-vc.service
+
+[Unit]
+Description=Lighthouse Validator Client for Holesky
+After=network.target lighthouse.service
+
+[Service]
+User=root
+Group=root
+Type=simple
+ExecStart=/usr/local/bin/lighthouse vc \
+    --network holesky \
+    --datadir /root/.lighthouse \
+    --unencrypted-http-transport \
+    --http \
+    --http-address 0.0.0.0 \
+    --metrics \
+    --metrics-address 0.0.0.0 \
+    --graffiti "PP's Validator" \
+    --suggested-fee-recipient 0xa341b0F69359482862Ed4422c6057cd59560D9E4
+Restart=always
+RestartSec=5
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+
+[Install]
+WantedBy=multi-user.target
+
+
