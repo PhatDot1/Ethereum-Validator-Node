@@ -36,6 +36,8 @@ For RPC node setup, refer to #RPC.md
     - 7.2. Resource Usage (CPU, RAM, Disk)  
     - 7.3. Security & Firewall  
     - 7.4. Logs & Troubleshooting  
+    - 7.5. RPC Node
+    - 7.6. Rate Limiting & Auth
 8. [Useful Links](#useful-links)  
 
 ---
@@ -311,6 +313,8 @@ The **consensus layer** (CL) is responsible for attesting, proposing blocks, and
 3. **Metrics**: If you have a Prometheus/Grafana setup, scrape from `http://<server-ip>:5054/metrics` and build dashboards.  
 
 ---
+
+Note: At this point you have set up the RPC node, proceed from here for full validator setup, skip to 7.5 for RPC node setup.
 
 ## 5. Deposit CLI & Generating Validator Keys
 
